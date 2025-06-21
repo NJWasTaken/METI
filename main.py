@@ -150,6 +150,7 @@ def main():
     <div style="text-align: center; font-size: 1.2rem; margin-bottom: 2rem;">
     Generate realistic handwritten digits (0-9) using a trained Conditional GAN model.
     Select a digit below and click "Generate" to create 5 unique samples!
+    <p>Created by Noel Jose for METI Internship test</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -171,23 +172,8 @@ def main():
     
     with col1:
         st.subheader("Select Digit")
-        
-        # Create digit buttons in a grid
-        button_cols = st.columns(5)
-        selected_digit = None
-        
-        for i in range(10):
-            col_idx = i % 5
-            with button_cols[col_idx]:
-                if st.button(str(i), key=f"digit_{i}", help=f"Generate digit {i}"):
-                    selected_digit = i
-        
-        # Alternative: Use selectbox
-        st.markdown("---")
-        digit_select = st.selectbox("Or select from dropdown:", range(10), format_func=lambda x: f"Digit {x}")
-        
-        if selected_digit is None:
-            selected_digit = digit_select
+        selected_digit = st.selectbox("Select from dropdown:", range(10), format_func=lambda x: f"Digit {x}")
+
     
     with col2:
         st.subheader("Generation Settings")
@@ -195,7 +181,7 @@ def main():
         # Advanced options
         with st.expander("🔧 Advanced Options"):
             seed = st.number_input("Random Seed (for reproducibility)", value=42, min_value=0, max_value=10000)
-            temperature = st.slider("Generation Temperature", min_value=0.5, max_value=2.0, value=1.0, step=0.1)
+            temperature = st.slider("Generation Temperature", min_value=0.5, max_value=2.0, value=0.7, step=0.1)
             st.info("Higher temperature = more diverse but potentially less realistic images")
         
         # Generate button
@@ -219,7 +205,7 @@ def main():
                 
                 # Create and display image grid
                 image_buf = create_image_grid(generated_images, selected_digit)
-                st.image(image_buf, caption=f"5 Generated Samples of Digit {selected_digit}", use_column_width=True)
+                st.image(image_buf, caption=f"5 Generated Samples of Digit {selected_digit}", use_container_width=True)
                 
                 # Individual images
                 st.subheader("Individual Samples")
@@ -234,34 +220,8 @@ def main():
                         # Resize for better display
                         pil_image = pil_image.resize((112, 112), Image.NEAREST)
                         
-                        st.image(pil_image, caption=f"Sample {i+1}", use_column_width=True)
-                
-                # Download option
-                st.markdown("---")
-                if st.button("💾 Download All Images"):
-                    # Create zip file with all images
-                    import zipfile
-                    zip_buf = io.BytesIO()
+                        st.image(pil_image, caption=f"Sample {i+1}", use_container_width=True)
                     
-                    with zipfile.ZipFile(zip_buf, 'w') as zip_file:
-                        for i in range(5):
-                            img_array = (generated_images[i, 0] * 255).astype(np.uint8)
-                            pil_image = Image.fromarray(img_array, mode='L')
-                            
-                            img_bytes = io.BytesIO()
-                            pil_image.save(img_bytes, format='PNG')
-                            
-                            zip_file.writestr(f'digit_{selected_digit}_sample_{i+1}.png', img_bytes.getvalue())
-                    
-                    zip_buf.seek(0)
-                    
-                    st.download_button(
-                        label="📥 Download ZIP",
-                        data=zip_buf.getvalue(),
-                        file_name=f"digit_{selected_digit}_samples.zip",
-                        mime="application/zip"
-                    )
-    
     # Footer
     st.markdown("---")
     st.markdown("""
